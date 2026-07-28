@@ -36,37 +36,67 @@ export function ThemeProvider({
   disableTransitionOnChange = false,
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage?.getItem(storageKey) as Theme) || defaultTheme
-  );
+  // Render starts from the default on both server and client. Reading
+  // localStorage or matchMedia during render throws a ReferenceError under
+  // static generation — those globals do not merely evaluate to undefined on
+  // the server, they are undeclared, so `localStorage?.getItem` still throws.
+  // The stored and system values are adopted in effects, which only run in the
+  // browser, keeping the first client render identical to the server's.
+  const [theme, setThemeState] = useState<Theme>(defaultTheme);
+  const [systemPrefersDark, setSystemPrefersDark] = useState(false);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(storageKey) as Theme | null;
+    if (stored === 'light' || stored === 'dark' || stored === 'system') {
+      setThemeState(stored);
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (!enableSystem) return;
+    const query = window.matchMedia('(prefers-color-scheme: dark)');
+    const sync = () => setSystemPrefersDark(query.matches);
+    sync();
+    query.addEventListener('change', sync);
+    return () => query.removeEventListener('change', sync);
+  }, [enableSystem]);
+
+  const isDark = theme === 'dark' || (theme === 'system' && enableSystem && systemPrefersDark);
 
   useEffect(() => {
     const root = window.document.documentElement;
+    const resolved = isDark ? 'dark' : 'light';
 
-    root.classList.remove('light', 'dark');
-
-    if (theme === 'system' && enableSystem) {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
-        .matches
-        ? 'dark'
-        : 'light';
-
-      root.classList.add(systemTheme);
-      root.setAttribute(attribute, systemTheme);
-      return;
+    // Suppress the colour transition while the theme swaps, so switching does
+    // not animate every themed property across the whole page at once.
+    let cleanup: (() => void) | undefined;
+    if (disableTransitionOnChange) {
+      const style = document.createElement('style');
+      style.appendChild(
+        document.createTextNode('*{transition:none !important}')
+      );
+      document.head.appendChild(style);
+      cleanup = () => {
+        // Force a reflow so the suppression applies before it is removed.
+        window.getComputedStyle(document.body);
+        document.head.removeChild(style);
+      };
     }
 
-    root.classList.add(theme);
-    root.setAttribute(attribute, theme);
-  }, [theme, attribute, enableSystem]);
+    root.classList.remove('light', 'dark');
+    root.classList.add(resolved);
+    root.setAttribute(attribute, resolved);
 
-  const value = {
+    cleanup?.();
+  }, [isDark, attribute, disableTransitionOnChange]);
+
+  const value: ThemeProviderState = {
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage?.setItem(storageKey, theme);
-      setTheme(theme);
+    setTheme: (next: Theme) => {
+      window.localStorage.setItem(storageKey, next);
+      setThemeState(next);
     },
-    isDark: theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches),
+    isDark,
   };
 
   return (
@@ -83,4 +113,4 @@ export const useTheme = () => {
     throw new Error('useTheme must be used within a ThemeProvider');
 
   return context;
-}; 
+};

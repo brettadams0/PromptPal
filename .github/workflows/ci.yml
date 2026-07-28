@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+defaults:
+  run:
+    # The Next.js app lives in a subdirectory; the repo root holds only docs.
+    working-directory: prompt-builder
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+          cache-dependency-path: prompt-builder/package-lock.json
+
+      - run: npm ci
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      # `next build` prerenders every route, so this also catches server-side
+      # errors such as touching localStorage or matchMedia during render.
+      - name: Build
+        run: npx next build
