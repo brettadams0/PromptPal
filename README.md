@@ -1,5 +1,8 @@
 # PromptPal - AI Prompt Builder
 
+[![CI](https://github.com/brettadams0/PromptPal/actions/workflows/ci.yml/badge.svg)](https://github.com/brettadams0/PromptPal/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A modern, intuitive web application for creating high-quality prompts for ChatGPT, Claude, and other AI models.
 
 ## 🚀 Features
