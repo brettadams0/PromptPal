@@ -1,164 +1,60 @@
-# PromptPal - AI Prompt Builder
+# PromptPal
 
 [![CI](https://github.com/brettadams0/PromptPal/actions/workflows/ci.yml/badge.svg)](https://github.com/brettadams0/PromptPal/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A modern, intuitive web application for creating high-quality prompts for ChatGPT, Claude, and other AI models.
+A Next.js App Router front end for a prompt-composition tool: pick a task type and tone, fill in the
+variables, get a prompt you can paste into ChatGPT or Claude.
 
-## 🚀 Features
+**Status: the foundation is built, the builder is not.** What exists today is the landing page, the
+component library, and the full type and configuration layer. The page that actually composes a
+prompt has not been written yet — the "Start Building" and "View Templates" buttons on the home page
+are not wired to anything. Read this as a typed Next.js scaffold, not as a working product.
 
-- **Smart Templates**: Pre-built templates for various use cases
-- **Real-time Preview**: See your prompt as you build it
-- **Custom Variables**: Dynamic placeholders for personalized prompts
-- **Multiple Formats**: Export in text, markdown, JSON, and more
-- **Dark/Light Mode**: Beautiful themes for any preference
-- **Mobile Responsive**: Works perfectly on all devices
-- **Local Storage**: Save your prompts and preferences locally
+## Running it
 
-## 🛠️ Tech Stack
+The app lives in the `prompt-builder/` subdirectory — the repo root holds only docs and CI, so
+`npm install` at the top level finds nothing:
 
-- **Framework**: Next.js 14 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: Radix UI + Custom components
-- **Icons**: Lucide React
-- **Deployment**: Vercel-ready
-
-## 📦 Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/brettadams0/promptpal.git
-cd promptpal
-```
-
-2. Install dependencies:
-```bash
+```sh
+cd prompt-builder
 npm install
+npm run dev            # http://localhost:3000
 ```
 
-3. Run the development server:
-```bash
-npm run dev
+Node 20.x, matching CI.
+
+```sh
+npx tsc --noEmit       # type-check
+npm run build          # production build
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+## What is actually there
 
-## 🏗️ Project Structure
+| | |
+|---|---|
+| `src/app/page.tsx` | The landing page — hero, feature cards, task-type grid. Static. |
+| `src/app/layout.tsx` | Root layout, theme provider, fonts |
+| `src/components/ui/` | Button, Card, Input, Select, Slider, DropdownMenu, ThemeToggle — Radix primitives with Tailwind variants |
+| `src/components/layout/` | Header, footer, dark/light theme provider |
+| `src/lib/types.ts` | The domain model: `PromptTemplate`, `PromptVariable`, `GeneratedPrompt`, `UserPreferences`, `OutputFormat`, and the form/validation types |
+| `src/lib/constants.ts` | Task types, tone options, output formats |
+| `src/lib/utils.ts` | `cn()` class merging and helpers |
 
-```
-prompt-builder/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── globals.css        # Global styles
-│   │   ├── layout.tsx         # Root layout
-│   │   └── page.tsx           # Home page
-│   ├── components/
-│   │   ├── ui/                # Reusable UI components
-│   │   ├── forms/             # Form-specific components
-│   │   ├── prompt/            # Prompt-related components
-│   │   └── layout/            # Layout components
-│   ├── lib/
-│   │   ├── utils.ts           # Utility functions
-│   │   ├── types.ts           # TypeScript types
-│   │   └── constants.ts       # App constants
-│   └── hooks/                 # Custom React hooks
-├── public/                    # Static assets
-└── docs/                      # Documentation
-```
+Dark/light theming works. The component library is real and reusable. `types.ts` is the most
+finished thing in the repo — it describes a builder that the UI has not caught up with.
 
-## 🎨 Design System
+## What is not there yet
 
-### Colors
-- **Primary**: Blue (#0ea5e9) - Main brand color
-- **Secondary**: Gray (#64748b) - Supporting elements
-- **Accent**: Purple (#d946ef) - Highlights and CTAs
-- **Success**: Green (#22c55e) - Positive states
-- **Warning**: Yellow (#f59e0b) - Caution states
-- **Error**: Red (#ef4444) - Error states
+No builder route, no template library, no variable substitution, no export, no persistence. Those
+are the next pieces of work, roughly in that order — the types for all of them already exist, which
+is most of the design decided.
 
-### Typography
-- **Font**: Inter (Google Fonts)
-- **Code Font**: JetBrains Mono
-- **Responsive**: Mobile-first approach
+## Tech
 
-### Breakpoints
-- **xs**: 320px
-- **sm**: 640px
-- **md**: 768px
-- **lg**: 1024px
-- **xl**: 1280px
-- **2xl**: 1536px
+Next.js 14 (App Router), TypeScript, Tailwind CSS, Radix UI, Lucide icons. CI runs `npm ci` and
+`tsc --noEmit` on Node 20. Deployed on Vercel.
 
-## 🧪 Development
+## License
 
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run type-check` - Run TypeScript checks
-- `npm run format` - Format code with Prettier
-- `npm run test` - Run tests
-
-### Code Quality
-
-- **ESLint**: Configured with TypeScript and React rules
-- **Prettier**: Code formatting with Tailwind CSS plugin
-- **TypeScript**: Strict mode enabled
-- **Git Hooks**: Pre-commit checks (recommended)
-
-## 📋 Roadmap
-
-### Phase 1: Foundation ✅
-- [x] Project initialization
-- [x] Environment setup
-- [x] Design system foundation
-
-### Phase 2: Core UI
-- [ ] Main layout structure
-- [ ] Prompt configuration form
-- [ ] Real-time prompt preview
-
-### Phase 3: Prompt Logic
-- [ ] Prompt template system
-- [ ] Task type definitions
-- [ ] Advanced prompt options
-
-### Phase 4: User Experience
-- [ ] Prompt library
-- [ ] Local storage & preferences
-- [ ] Sharing & export features
-
-### Phase 5: Polish
-- [ ] Performance optimization
-- [ ] Accessibility implementation
-- [ ] Mobile experience polish
-
-### Phase 6: Testing
-- [ ] Unit & integration testing
-- [ ] End-to-end testing
-- [ ] Performance & security audit
-
-### Phase 7: Launch
-- [ ] User documentation
-- [ ] Launch preparation
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📞 Support
-
-- **Email**: adamsbrett00@gmail.com
-- **GitHub Issues**: [Report a bug](https://github.com/brettadams0/promptpal/issues)
-
----
-
-
-Built with ❤️ for the AI community 
+MIT — see [LICENSE](LICENSE).
