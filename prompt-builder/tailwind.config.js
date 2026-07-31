@@ -9,6 +9,32 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Semantic tokens. globals.css defines these as HSL channel triples
+        // under :root and .dark; mapping them here is what makes the .dark
+        // class actually repaint anything. Without these entries the class
+        // toggles, the variables swap, and no utility ever reads them.
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+
         // AI-themed color palette
         primary: {
           50: '#f0f9ff',
