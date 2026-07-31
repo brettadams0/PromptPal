@@ -52,7 +52,9 @@
   }
 
   body {
-    @apply bg-white text-gray-900;
+    /* Themed tokens, not fixed white/grey -- hardcoding these pinned the page
+       to the light palette no matter what .dark set above. */
+    @apply bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1;
   }
 
@@ -67,15 +69,15 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-gray-100;
+    @apply bg-muted;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 rounded-full;
+    @apply bg-muted-foreground/30 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400;
+    @apply bg-muted-foreground/50;
   }
 
   /* Focus styles */
