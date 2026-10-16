@@ -1,96 +1,60 @@
 'use client';
 
+import { Github } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { SITE } from '@/lib/site';
+import { cn } from '@/lib/utils';
+import { Logo } from './logo';
+
+const NAV = [
+  { href: '/builder', label: 'Builder' },
+  { href: '/templates', label: 'Templates' },
+  { href: '/library', label: 'Saved' },
+];
 
 export function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'Templates', href: '/templates' },
-    { name: 'Builder', href: '/builder' },
-    { name: 'Library', href: '/library' },
-    { name: 'About', href: '/about' },
-  ];
+  const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container-responsive">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <span className="text-lg font-bold">P</span>
-            </div>
-            <span className="text-xl font-bold">PromptPal</span>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            {navigation.map((item) => (
+    <header className="bg-background/80 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-40 border-b backdrop-blur">
+      <div className="container-page flex h-14 items-center gap-2 sm:gap-6">
+        <Link
+          href="/"
+          className="focus-visible:ring-ring flex items-center gap-2 rounded-md font-semibold focus-visible:ring-2 focus-visible:outline-none"
+        >
+          <Logo className="size-7" />
+          <span className="hidden sm:inline">{SITE.name}</span>
+        </Link>
+        <nav aria-label="Main" className="flex items-center gap-1">
+          {NAV.map((item) => {
+            const active = pathname === item.href;
+            return (
               <Link
-                key={item.name}
+                key={item.href}
                 href={item.href}
-                className="text-sm font-medium transition-colors hover:text-primary"
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'hover:text-foreground focus-visible:ring-ring rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none',
+                  active ? 'bg-accent text-foreground' : 'text-muted-foreground',
+                )}
               >
-                {item.name}
+                {item.label}
               </Link>
-            ))}
-          </nav>
-
-          {/* Desktop Actions */}
-          <div className="hidden md:flex items-center space-x-4">
-            <ThemeToggle />
-            <Button asChild>
-              <Link href="/builder">Get Started</Link>
-            </Button>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="flex md:hidden items-center space-x-2">
-            <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2"
-            >
-              {isMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </Button>
-          </div>
+            );
+          })}
+        </nav>
+        <div className="ml-auto flex items-center gap-1">
+          <Button variant="ghost" size="icon" asChild>
+            <a href={SITE.repo} target="_blank" rel="noreferrer" aria-label="Source code on GitHub">
+              <Github />
+            </a>
+          </Button>
+          <ThemeToggle />
         </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="space-y-1 pb-3 pt-2">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="block px-3 py-2 text-base font-medium transition-colors hover:text-primary"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              <div className="px-3 pt-4">
-                <Button asChild className="w-full">
-                  <Link href="/builder">Get Started</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </header>
   );
-} 
+}

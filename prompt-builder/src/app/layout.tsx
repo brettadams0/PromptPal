@@ -1,90 +1,52 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { ThemeProvider } from '@/components/layout/theme-provider';
-import { Header } from '@/components/layout/header';
+import type { Metadata, Viewport } from 'next';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import { Footer } from '@/components/layout/footer';
+import { Header } from '@/components/layout/header';
+import { ThemeProvider, themeScript } from '@/components/layout/theme-provider';
+import { SITE } from '@/lib/site';
+import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+const jetbrains = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains', display: 'swap' });
 
 export const metadata: Metadata = {
-  title: 'PromptPal - AI Prompt Builder',
-  description: 'Create high-quality prompts for ChatGPT, Claude, and other AI models with our intuitive prompt builder.',
-  keywords: ['AI', 'prompt', 'builder', 'ChatGPT', 'Claude', 'LLM', 'artificial intelligence'],
-  authors: [{ name: 'PromptPal Team' }],
-  creator: 'PromptPal',
-  publisher: 'PromptPal',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL('https://promptpal.app'),
-  alternates: {
-    canonical: '/',
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://promptpal.app',
-    title: 'PromptPal - AI Prompt Builder',
-    description: 'Create high-quality prompts for ChatGPT, Claude, and other AI models with our intuitive prompt builder.',
-    siteName: 'PromptPal',
-    images: [
-      {
-        url: '/meta-images/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'PromptPal - AI Prompt Builder',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'PromptPal - AI Prompt Builder',
-    description: 'Create high-quality prompts for ChatGPT, Claude, and other AI models with our intuitive prompt builder.',
-    images: ['/meta-images/twitter-image.png'],
-    creator: '@promptpal',
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-  verification: {
-    google: 'your-google-verification-code',
-  },
+  metadataBase: new URL(SITE.url),
+  title: { default: `${SITE.name} — typed, linted prompt templates`, template: `%s · ${SITE.name}` },
+  description: SITE.description,
+  applicationName: SITE.name,
+  authors: [{ name: SITE.author, url: SITE.authorUrl }],
+  openGraph: { type: 'website', siteName: SITE.name, url: '/', title: SITE.name, description: SITE.description },
+  twitter: { card: 'summary_large_image', title: SITE.name, description: SITE.description },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#09090b' },
+  ],
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <div className="min-h-screen bg-background font-sans antialiased">
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
+    <html lang="en" className={`${inter.variable} ${jetbrains.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body className="flex min-h-dvh flex-col font-sans">
+        <ThemeProvider>
+          <a
+            href="#main"
+            className="bg-primary text-primary-foreground sr-only z-50 rounded-md px-3 py-2 focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+          >
+            Skip to content
+          </a>
+          <Header />
+          <main id="main" className="flex-1">
+            {children}
+          </main>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>
   );
-} 
+}
