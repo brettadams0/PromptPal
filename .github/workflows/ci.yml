@@ -6,30 +6,56 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 defaults:
   run:
-    # The Next.js app lives in a subdirectory; the repo root holds only docs.
+    # The Next.js app lives in a subdirectory; the repo root holds docs and CI.
     working-directory: prompt-builder
 
 jobs:
-  build:
+  check:
+    name: Lint, types, unit tests, build (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        node: [20.x, 22.x]
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: ${{ matrix.node }}
           cache: npm
           cache-dependency-path: prompt-builder/package-lock.json
-
       - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run type-check
+      - run: npm test
+      # `next build` prerenders every route, so this also catches code that
+      # touches browser-only globals during server rendering.
+      - run: npm run build
+      # Production dependencies only: the dev toolchain is never deployed.
+      - run: npm audit --omit=dev --audit-level=moderate
 
-      - name: Type-check
-        run: npx tsc --noEmit
-
-      # `next build` prerenders every route, so this also catches server-side
-      # errors such as touching localStorage or matchMedia during render.
-      - name: Build
-        run: npx next build
+  e2e:
+    name: End-to-end and accessibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: prompt-builder/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: prompt-builder/playwright-report
+          retention-days: 7

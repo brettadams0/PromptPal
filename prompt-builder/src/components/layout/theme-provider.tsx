@@ -1,116 +1,82 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from 'react';
 
-type Theme = 'dark' | 'light' | 'system';
+export type Theme = 'light' | 'dark' | 'system';
 
-type ThemeProviderProps = {
-  children: React.ReactNode;
-  defaultTheme?: Theme;
-  storageKey?: string;
-  attribute?: string;
-  enableSystem?: boolean;
-  disableTransitionOnChange?: boolean;
-};
+const STORAGE_KEY = 'promptpal-theme';
 
-type ThemeProviderState = {
+/**
+ * Runs before first paint (inlined in <head> by the root layout), so a dark
+ * system theme never flashes white while React hydrates. Kept as a string
+ * because it must execute before any bundle has loaded.
+ */
+export const themeScript = `(function(){try{var t=localStorage.getItem('${STORAGE_KEY}');var d=t==='dark'||((t!=='light')&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`;
+
+interface ThemeContextValue {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  isDark: boolean;
-};
-
-const initialState: ThemeProviderState = {
-  theme: 'system',
-  setTheme: () => null,
-  isDark: false,
-};
-
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
-
-export function ThemeProvider({
-  children,
-  defaultTheme = 'system',
-  storageKey = 'promptpal-theme',
-  attribute = 'data-theme',
-  enableSystem = true,
-  disableTransitionOnChange = false,
-  ...props
-}: ThemeProviderProps) {
-  // Render starts from the default on both server and client. Reading
-  // localStorage or matchMedia during render throws a ReferenceError under
-  // static generation — those globals do not merely evaluate to undefined on
-  // the server, they are undeclared, so `localStorage?.getItem` still throws.
-  // The stored and system values are adopted in effects, which only run in the
-  // browser, keeping the first client render identical to the server's.
-  const [theme, setThemeState] = useState<Theme>(defaultTheme);
-  const [systemPrefersDark, setSystemPrefersDark] = useState(false);
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem(storageKey) as Theme | null;
-    if (stored === 'light' || stored === 'dark' || stored === 'system') {
-      setThemeState(stored);
-    }
-  }, [storageKey]);
-
-  useEffect(() => {
-    if (!enableSystem) return;
-    const query = window.matchMedia('(prefers-color-scheme: dark)');
-    const sync = () => setSystemPrefersDark(query.matches);
-    sync();
-    query.addEventListener('change', sync);
-    return () => query.removeEventListener('change', sync);
-  }, [enableSystem]);
-
-  const isDark = theme === 'dark' || (theme === 'system' && enableSystem && systemPrefersDark);
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    const resolved = isDark ? 'dark' : 'light';
-
-    // Suppress the colour transition while the theme swaps, so switching does
-    // not animate every themed property across the whole page at once.
-    let cleanup: (() => void) | undefined;
-    if (disableTransitionOnChange) {
-      const style = document.createElement('style');
-      style.appendChild(
-        document.createTextNode('*{transition:none !important}')
-      );
-      document.head.appendChild(style);
-      cleanup = () => {
-        // Force a reflow so the suppression applies before it is removed.
-        window.getComputedStyle(document.body);
-        document.head.removeChild(style);
-      };
-    }
-
-    root.classList.remove('light', 'dark');
-    root.classList.add(resolved);
-    root.setAttribute(attribute, resolved);
-
-    cleanup?.();
-  }, [isDark, attribute, disableTransitionOnChange]);
-
-  const value: ThemeProviderState = {
-    theme,
-    setTheme: (next: Theme) => {
-      window.localStorage.setItem(storageKey, next);
-      setThemeState(next);
-    },
-    isDark,
-  };
-
-  return (
-    <ThemeProviderContext.Provider {...props} value={value}>
-      {children}
-    </ThemeProviderContext.Provider>
-  );
 }
 
-export const useTheme = () => {
-  const context = useContext(ThemeProviderContext);
+const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-  if (context === undefined)
-    throw new Error('useTheme must be used within a ThemeProvider');
+// The stored preference is external state (it also changes in other tabs),
+// so it is read through useSyncExternalStore rather than mirrored into React.
+const listeners = new Set<() => void>();
 
+function readStored(): Theme {
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    return stored === 'light' || stored === 'dark' ? stored : 'system';
+  } catch {
+    return 'system';
+  }
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  const onStorage = (e: StorageEvent) => e.key === STORAGE_KEY && listener();
+  window.addEventListener('storage', onStorage);
+  return () => {
+    listeners.delete(listener);
+    window.removeEventListener('storage', onStorage);
+  };
+}
+
+function apply(theme: Theme) {
+  const dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.classList.toggle('dark', dark);
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const theme = useSyncExternalStore(subscribe, readStored, () => 'system' as const);
+
+  useEffect(() => {
+    apply(theme);
+    if (theme !== 'system') return;
+    const query = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = () => apply('system');
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, [theme]);
+
+  const setTheme = useCallback((next: Theme) => {
+    try {
+      if (next === 'system') window.localStorage.removeItem(STORAGE_KEY);
+      else window.localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      // Storage unavailable: apply for this page view only.
+      apply(next);
+    }
+    listeners.forEach((l) => l());
+  }, []);
+
+  const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+}
+
+export function useTheme(): ThemeContextValue {
+  const context = useContext(ThemeContext);
+  if (!context) throw new Error('useTheme must be used within a ThemeProvider');
   return context;
-};
+}
