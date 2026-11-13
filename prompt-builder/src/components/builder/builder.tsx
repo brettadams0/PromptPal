@@ -221,11 +221,7 @@ export function Builder() {
                 <span className="text-muted-foreground">
                   Fill in the fields and the prompt on the right updates as you type.
                 </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => dispatch({ type: 'fill-example', values: example })}
-                >
+                <Button variant="outline" size="sm" onClick={() => dispatch({ type: 'fill-example', values: example })}>
                   <Sparkles aria-hidden /> Try an example
                 </Button>
               </div>

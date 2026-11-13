@@ -38,10 +38,13 @@ export const EXAMPLES: Readonly<Record<string, Values>> = {
   },
   'blog-outline': { topic: 'How database indexes speed up queries' },
   'rewrite-clarity': {
-    text: 'Due to the fact that the deployment was not able to be completed in a timely manner, the team made the decision to postpone the release until such time as the issues have been resolved.',
+    text:
+      'Due to the fact that the deployment was not able to be completed in a timely manner, the team made the decision to postpone the release until such time as the issues have been resolved.',
   },
   brainstorm: { goal: 'Name a command-line tool that checks configuration files for mistakes' },
-  'short-story': { premise: 'A lighthouse keeper discovers that the light has been guiding ships that no longer exist.' },
+  'short-story': {
+    premise: 'A lighthouse keeper discovers that the light has been guiding ships that no longer exist.',
+  },
   'professional-email': {
     recipient: 'My manager',
     purpose: 'Ask for feedback on my project plan before Friday',
