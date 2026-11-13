@@ -1,6 +1,6 @@
 'use client';
 
-import { BookmarkCheck, BookmarkPlus, FilePlus2, Link2, RotateCcw, Undo2 } from 'lucide-react';
+import { BookmarkCheck, BookmarkPlus, FilePlus2, Link2, RotateCcw, Sparkles, Undo2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCopy } from '@/hooks/use-copy';
 import { useLibrary } from '@/hooks/use-library';
 import { compile } from '@/lib/compile';
+import { exampleFor } from '@/lib/examples';
 import type { Diagnostic } from '@/lib/lint';
 import { readHash, shareUrl } from '@/lib/share';
 import { libraryStore } from '@/lib/storage';
@@ -92,6 +93,9 @@ export function Builder() {
     () => new Set(compiled.diagnostics.flatMap((d) => (d.rule === 'required-empty' && d.variable ? [d.variable] : []))),
     [compiled.diagnostics],
   );
+
+  // Offered while a required field is still empty, so a newcomer can see a finished prompt in one click.
+  const example = invalid.size > 0 ? exampleFor(doc) : undefined;
 
   const dirty = state.savedSnapshot !== snapshot(doc);
   const modified = isTemplateModified(doc);
@@ -212,6 +216,20 @@ export function Builder() {
             </span>
           </div>
           <TabsContent value="fill" className="p-4">
+            {example && (
+              <div className="bg-muted/50 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm">
+                <span className="text-muted-foreground">
+                  Fill in the fields and the prompt on the right updates as you type.
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => dispatch({ type: 'fill-example', values: example })}
+                >
+                  <Sparkles aria-hidden /> Try an example
+                </Button>
+              </div>
+            )}
             <VariableForm
               variables={compiled.variables}
               values={doc.values}

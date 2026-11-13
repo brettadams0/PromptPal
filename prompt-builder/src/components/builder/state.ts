@@ -20,7 +20,8 @@ export type BuilderAction =
   | { type: 'declare'; variable: VariableDef }
   | { type: 'undeclare'; name: string }
   | { type: 'revert-template' }
-  | { type: 'clear-values' };
+  | { type: 'clear-values' }
+  | { type: 'fill-example'; values: Values };
 
 export const snapshot = (doc: PromptDocument) => JSON.stringify(doc);
 
@@ -68,6 +69,24 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
     }
     case 'clear-values':
       return { ...state, doc: { ...doc, values: defaultValues(doc.variables) } };
+    case 'fill-example':
+      // Only fills fields the document declares, and only the ones still empty.
+      return {
+        ...state,
+        doc: {
+          ...doc,
+          values: {
+            ...doc.values,
+            ...Object.fromEntries(
+              Object.entries(action.values).filter(
+                ([name]) =>
+                  doc.variables.some((v) => v.name === name) &&
+                  (doc.values[name] === undefined || doc.values[name] === ''),
+              ),
+            ),
+          },
+        },
+      };
   }
 }
 

@@ -38,4 +38,15 @@ describe('builder reducer', () => {
     state = builderReducer(state, { type: 'clear-values' });
     expect(state.doc.values.tone).toBe('Friendly');
   });
+
+  it('fills an example without overwriting what the user already typed', () => {
+    let state = builderReducer(start(), { type: 'set-value', name: 'recipient', value: 'Sam' });
+    state = builderReducer(state, {
+      type: 'fill-example',
+      values: { recipient: 'My manager', purpose: 'Ask for feedback', not_a_field: 'ignored' },
+    });
+    expect(state.doc.values.recipient).toBe('Sam');
+    expect(state.doc.values.purpose).toBe('Ask for feedback');
+    expect(state.doc.values).not.toHaveProperty('not_a_field');
+  });
 });
