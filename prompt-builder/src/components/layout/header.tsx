@@ -26,7 +26,7 @@ export function Header() {
           className="focus-visible:ring-ring flex items-center gap-2 rounded-md font-semibold focus-visible:ring-2 focus-visible:outline-none"
         >
           <Logo className="size-7" />
-          <span className="hidden sm:inline">{SITE.name}</span>
+          <span className="sr-only sm:not-sr-only">{SITE.name}</span>
         </Link>
         <nav aria-label="Main" className="flex items-center gap-1">
           {NAV.map((item) => {
