@@ -19,3 +19,16 @@ for (const colorScheme of ['light', 'dark'] as const) {
     }
   });
 }
+
+test('the mobile header has a named, keyboard-accessible home link', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/templates');
+
+  const home = page.getByRole('banner').getByRole('link', { name: 'PromptPal', exact: true });
+  await expect(home).toHaveAttribute('href', '/');
+  await page.getByRole('link', { name: 'Skip to content' }).focus();
+  await page.keyboard.press('Tab');
+  await expect(home).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL('/');
+});
