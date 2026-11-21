@@ -3,9 +3,8 @@
 [![CI](https://github.com/brettadams0/PromptPal/actions/workflows/ci.yml/badge.svg)](https://github.com/brettadams0/PromptPal/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**Prompt templates that behave like code.** Write a prompt once with typed fields and optional
-sections; PromptPal fills it in, lints it for the mistakes that quietly ruin answers, and exports a
-ready-to-run Claude API call. **[Try it →](https://prompt-pal-gules.vercel.app)**
+Write a reusable prompt with typed fields and optional sections. PromptPal flags missing inputs and
+leftover placeholders, shows the assembled text, and exports a ready-to-run Claude API call. **[Try it →](https://prompt-pal-gules.vercel.app)**
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
